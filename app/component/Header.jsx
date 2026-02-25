@@ -1,0 +1,156 @@
+"use client";
+
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ChevronDown } from "lucide-react";
+
+export default function Header() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Desktop dropdown state
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
+  // Mobile accordion state
+  const [mobileMenus, setMobileMenus] = useState({
+    about: false,
+    projects: false,
+    gallery: false,
+  });
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+
+  const toggleMobileMenu = (id) => {
+    setMobileMenus((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  return (
+    <>
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+          isScrolled
+            ? "bg-[#0A1A10]/95 backdrop-blur-md py-4 shadow-lg"
+            : "bg-transparent py-6 lg:py-8"
+        }`}
+      >
+        <div className="max-w-360 mx-auto flex items-center justify-between px-6 lg:pl-5 lg:pr-10">
+          
+          <div className="flex items-center">
+            <Link href="/" className="relative block w-28 md:w-45 h-10 md:h-15">
+              <img
+                src="/mangal-realty-logo.png"
+                alt="Mangal Realty"
+                className="object-contain w-full h-full"
+              />
+            </Link>
+          </div>
+
+
+          
+        </div>
+      </header>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-black/90 z-90 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed top-0 right-0 h-full w-[80%] sm:w-[60%] bg-[#0A1A10] z-100 shadow-2xl flex flex-col"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-white/5">
+                <span className="text-white/40 text-[10px] font-bold tracking-widest uppercase">Menu</span>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-white hover:text-green-400 p-2 border border-white/10 rounded-full transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <nav className="flex-1 overflow-y-auto py-8 px-6 no-scrollbar">
+                <div className="flex flex-col gap-6">
+                  {menuItems.map((item, i) => (
+                    <motion.div
+                      key={item.name}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                    >
+                      {item.subLinks ? (
+                        <div className="flex flex-col">
+                          <button
+                            onClick={() => toggleMobileMenu(item.id)}
+                            className="flex items-center justify-between text-white text-lg font-medium py-2 w-full text-left group"
+                          >
+                            <span className="group-hover:text-green-400 transition-colors uppercase tracking-wider">{item.name}</span>
+                            <ChevronDown
+                              size={18}
+                              className={`text-white/40 transition-transform duration-300 ${
+                                mobileMenus[item.id] ? "rotate-180 text-green-400" : ""
+                              }`}
+                            />
+                          </button>
+                          
+                          <AnimatePresence>
+                            {mobileMenus[item.id] && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden bg-white/5 rounded-xl mt-2"
+                              >
+                                <div className="flex flex-col py-2">
+                                  {item.subLinks.map((sub) => (
+                                    <Link
+                                      key={sub.name}
+                                      href={sub.href}
+                                      target={sub.target || "_self"} // Applied here for mobile
+                                      rel={sub.rel || ""} // Applied here for mobile
+                                      onClick={() => setIsOpen(false)}
+                                      className="block px-6 py-4 text-gray-400 hover:text-green-400 hover:bg-white/5 text-sm font-medium transition-all"
+                                    >
+                                      {sub.name}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ) : (
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className="text-white text-lg font-medium block py-2 hover:text-green-400 transition-colors uppercase tracking-wider"
+                        >
+                          {item.name}
+                        </Link>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
